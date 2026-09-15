@@ -44,6 +44,23 @@ export function FormFieldRenderer({
     )
   }
 
+  if (field.type === 'number') {
+    return (
+      <div>
+        {label}
+        <input
+          type="number"
+          className={inputClass}
+          placeholder={field.placeholder || `Enter ${field.label.toLowerCase()}`}
+          value={typeof value === 'string' ? value : ''}
+          onChange={(e) => onChange(e.target.value)}
+          disabled={disabled}
+        />
+        {error ? <p className="mt-1 text-sm text-aca-red">{error}</p> : null}
+      </div>
+    )
+  }
+
   if (field.type === 'textbox') {
     return (
       <div>

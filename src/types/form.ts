@@ -1,4 +1,4 @@
-export type FieldType = 'text' | 'textbox' | 'checkbox' | 'select' | 'radio'
+export type FieldType = 'text' | 'textbox' | 'number' | 'checkbox' | 'select' | 'radio'
 
 export type FormStatus = 'draft' | 'published'
 
@@ -39,6 +39,7 @@ export interface FormSubmission {
 export const FIELD_TYPE_LABELS: Record<FieldType, string> = {
   text: 'Text',
   textbox: 'Textbox',
+  number: 'Number',
   checkbox: 'Checkbox',
   select: 'Select',
   radio: 'Radio',

@@ -444,7 +444,7 @@ function FieldEditor({
             Required
           </label>
         </div>
-        {(field.type === 'text' || field.type === 'textbox' || field.type === 'select') && (
+        {(field.type === 'text' || field.type === 'textbox' || field.type === 'number' || field.type === 'select') && (
           <div className="sm:col-span-2">
             <label className="mb-1 block text-xs font-semibold text-aca-muted">
               Placeholder
