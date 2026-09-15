@@ -1,7 +1,9 @@
 import { useState } from 'react'
 import {
-  updateEmail,
+  verifyBeforeUpdateEmail,
   updatePassword,
+  reauthenticateWithCredential,
+  EmailAuthProvider,
 } from 'firebase/auth'
 import { useAuth } from '../contexts/AuthContext'
 
@@ -15,7 +17,10 @@ export function SettingsPage() {
   const [emailSuccess, setEmailSuccess] = useState('')
 
   // Update Password State
+  const [currentPassword, setCurrentPassword] = useState('')
   const [newPassword, setNewPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
   const [passwordLoading, setPasswordLoading] = useState(false)
   const [passwordError, setPasswordError] = useState('')
   const [passwordSuccess, setPasswordSuccess] = useState('')
@@ -27,8 +32,8 @@ export function SettingsPage() {
     setEmailError('')
     setEmailSuccess('')
     try {
-      await updateEmail(user, newEmail)
-      setEmailSuccess('Email updated successfully.')
+      await verifyBeforeUpdateEmail(user, newEmail)
+      setEmailSuccess('A verification link has been sent to your new email. Please verify it to complete the change.')
       setNewEmail('')
     } catch (err: any) {
       if (err.code === 'auth/requires-recent-login') {
@@ -43,20 +48,30 @@ export function SettingsPage() {
 
   async function handleUpdatePassword(e: React.FormEvent) {
     e.preventDefault()
-    if (!user || !newPassword) return
-    setPasswordLoading(true)
+    if (!user || !user.email || !newPassword || !currentPassword || !confirmPassword) return
+    
     setPasswordError('')
     setPasswordSuccess('')
+
+    if (newPassword !== confirmPassword) {
+      setPasswordError('New passwords do not match.')
+      return
+    }
+
+    setPasswordLoading(true)
+    
     try {
+      const credential = EmailAuthProvider.credential(user.email, currentPassword)
+      await reauthenticateWithCredential(user, credential)
+      
       await updatePassword(user, newPassword)
+      
       setPasswordSuccess('Password updated successfully.')
+      setCurrentPassword('')
       setNewPassword('')
+      setConfirmPassword('')
     } catch (err: any) {
-      if (err.code === 'auth/requires-recent-login') {
-        setPasswordError('This action requires a recent login. Please sign out and sign back in to continue.')
-      } else {
-        setPasswordError(err.message || 'Failed to update password.')
-      }
+      setPasswordError(err.message || 'Failed to update password. Please check your current password.')
     } finally {
       setPasswordLoading(false)
     }
@@ -104,9 +119,20 @@ export function SettingsPage() {
           {passwordSuccess && <p className="mb-4 rounded bg-green-50 p-3 text-sm text-green-700">{passwordSuccess}</p>}
           <form onSubmit={handleUpdatePassword} className="space-y-4">
             <div>
+              <label className="mb-1 block text-sm font-semibold text-aca-burgundy">Current Password</label>
+              <input
+                type={showPassword ? 'text' : 'password'}
+                value={currentPassword}
+                onChange={(e) => setCurrentPassword(e.target.value)}
+                className="w-full rounded-lg border border-aca-border px-3 py-2 outline-none focus:border-aca-burgundy"
+                placeholder="Enter current password"
+                required
+              />
+            </div>
+            <div>
               <label className="mb-1 block text-sm font-semibold text-aca-burgundy">New Password</label>
               <input
-                type="password"
+                type={showPassword ? 'text' : 'password'}
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
                 className="w-full rounded-lg border border-aca-border px-3 py-2 outline-none focus:border-aca-burgundy"
@@ -114,6 +140,30 @@ export function SettingsPage() {
                 minLength={6}
                 required
               />
+            </div>
+            <div>
+              <label className="mb-1 block text-sm font-semibold text-aca-burgundy">Confirm New Password</label>
+              <input
+                type={showPassword ? 'text' : 'password'}
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                className="w-full rounded-lg border border-aca-border px-3 py-2 outline-none focus:border-aca-burgundy"
+                placeholder="Confirm new password"
+                minLength={6}
+                required
+              />
+            </div>
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                id="showPassword"
+                checked={showPassword}
+                onChange={(e) => setShowPassword(e.target.checked)}
+                className="h-4 w-4 rounded border-aca-border text-aca-burgundy focus:ring-aca-burgundy"
+              />
+              <label htmlFor="showPassword" className="cursor-pointer text-sm font-medium text-aca-brown">
+                Show passwords
+              </label>
             </div>
             <button
               type="submit"
