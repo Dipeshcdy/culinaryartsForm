@@ -12,8 +12,8 @@ service cloud.firestore {
     }
 
     match /admins/{uid} {
-      allow read: if isSignedIn() && request.auth.uid == uid;
-      allow write: if false;
+      allow read: if isAdmin();
+      allow write: if isAdmin();
     }
 
     match /forms/{formId} {

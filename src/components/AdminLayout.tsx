@@ -32,6 +32,12 @@ export function AdminLayout() {
           <NavLink to="/admin/forms" className={linkClass}>
             Form Creator
           </NavLink>
+          <NavLink to="/admin/users" className={linkClass}>
+            Users
+          </NavLink>
+          <NavLink to="/admin/settings" className={linkClass}>
+            Settings
+          </NavLink>
         </nav>
         <div className="border-t border-aca-border p-4">
           <p className="truncate text-xs text-aca-muted">{user?.email}</p>

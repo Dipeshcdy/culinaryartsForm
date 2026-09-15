@@ -7,7 +7,9 @@ import { FormBuilderPage } from './pages/FormBuilderPage'
 import { FormsListPage } from './pages/FormsListPage'
 import { LoginPage } from './pages/LoginPage'
 import { PublicFormPage } from './pages/PublicFormPage'
+import { SettingsPage } from './pages/SettingsPage'
 import { SubmissionsPage } from './pages/SubmissionsPage'
+import { UsersPage } from './pages/UsersPage'
 
 export default function App() {
   return (
@@ -25,6 +27,8 @@ export default function App() {
                 path="forms/:formId/submissions"
                 element={<SubmissionsPage />}
               />
+              <Route path="settings" element={<SettingsPage />} />
+              <Route path="users" element={<UsersPage />} />
             </Route>
           </Route>
           <Route path="/:formId" element={<PublicFormPage />} />
