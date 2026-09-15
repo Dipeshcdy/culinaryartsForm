@@ -5,6 +5,8 @@ import { FormFieldRenderer } from '../components/FormFieldRenderer'
 import { getPublishedForm } from '../lib/forms'
 import { createSubmission } from '../lib/submissions'
 import { RESERVED_PATHS, type AnswerValue, type FormDoc, type FormField } from '../types/form'
+import { doc, getDoc } from 'firebase/firestore'
+import { db } from '../lib/firebase'
 
 export function PublicFormPage() {
   const { formId = '' } = useParams()
@@ -174,11 +176,35 @@ export function PublicFormPage() {
 }
 
 function Shell({ children }: { children: ReactNode }) {
+  const [websiteUrl, setWebsiteUrl] = useState('https://culinaryarts.com.np/')
+
+  useEffect(() => {
+    async function loadSettings() {
+      try {
+        const snap = await getDoc(doc(db, 'settings', 'general'))
+        if (snap.exists() && snap.data().websiteUrl) {
+          setWebsiteUrl(snap.data().websiteUrl)
+        }
+      } catch (err) {
+        console.error('Failed to load settings', err)
+      }
+    }
+    void loadSettings()
+  }, [])
+
   return (
     <div className="min-h-screen bg-aca-cream">
       <header className="border-b border-aca-border bg-white">
-        <div className="mx-auto flex max-w-2xl items-center px-4 py-4">
+        <div className="mx-auto flex max-w-2xl items-center justify-between px-4 py-4">
           <BrandLogo className="h-10" />
+          <a
+            href={websiteUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="rounded-lg bg-aca-burgundy px-4 py-2 text-sm font-bold text-white transition hover:bg-aca-red"
+          >
+            Visit Website
+          </a>
         </div>
       </header>
       <main className="mx-auto max-w-2xl px-4 py-8 sm:py-12">{children}</main>

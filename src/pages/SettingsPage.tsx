@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import {
   verifyBeforeUpdateEmail,
   updatePassword,
@@ -6,9 +6,17 @@ import {
   EmailAuthProvider,
 } from 'firebase/auth'
 import { useAuth } from '../contexts/AuthContext'
+import { doc, getDoc, setDoc } from 'firebase/firestore'
+import { db } from '../lib/firebase'
 
 export function SettingsPage() {
   const { user } = useAuth()
+
+  // General Settings State
+  const [websiteUrl, setWebsiteUrl] = useState('')
+  const [websiteLoading, setWebsiteLoading] = useState(false)
+  const [websiteError, setWebsiteError] = useState('')
+  const [websiteSuccess, setWebsiteSuccess] = useState('')
 
   // Update Email State
   const [newEmail, setNewEmail] = useState('')
@@ -24,6 +32,36 @@ export function SettingsPage() {
   const [passwordLoading, setPasswordLoading] = useState(false)
   const [passwordError, setPasswordError] = useState('')
   const [passwordSuccess, setPasswordSuccess] = useState('')
+
+  useEffect(() => {
+    async function loadSettings() {
+      try {
+        const docRef = doc(db, 'settings', 'general')
+        const snap = await getDoc(docRef)
+        if (snap.exists()) {
+          setWebsiteUrl(snap.data().websiteUrl || '')
+        }
+      } catch (err) {
+        console.error('Failed to load settings', err)
+      }
+    }
+    void loadSettings()
+  }, [])
+
+  async function handleUpdateWebsite(e: React.FormEvent) {
+    e.preventDefault()
+    setWebsiteLoading(true)
+    setWebsiteError('')
+    setWebsiteSuccess('')
+    try {
+      await setDoc(doc(db, 'settings', 'general'), { websiteUrl }, { merge: true })
+      setWebsiteSuccess('Website URL updated successfully.')
+    } catch (err: any) {
+      setWebsiteError(err.message || 'Failed to update settings.')
+    } finally {
+      setWebsiteLoading(false)
+    }
+  }
 
   async function handleUpdateEmail(e: React.FormEvent) {
     e.preventDefault()
@@ -87,6 +125,33 @@ export function SettingsPage() {
       </div>
 
       <div className="grid gap-8">
+        <section className="rounded-xl border border-aca-border bg-white p-6 shadow-sm">
+          <h2 className="mb-4 text-xl font-semibold text-aca-brown">General Settings</h2>
+          {websiteError && <p className="mb-4 rounded bg-aca-blush-soft p-3 text-sm text-aca-red">{websiteError}</p>}
+          {websiteSuccess && <p className="mb-4 rounded bg-green-50 p-3 text-sm text-green-700">{websiteSuccess}</p>}
+          <form onSubmit={handleUpdateWebsite} className="space-y-4">
+            <div>
+              <label className="mb-1 block text-sm font-semibold text-aca-burgundy">Website URL</label>
+              <input
+                type="url"
+                value={websiteUrl}
+                onChange={(e) => setWebsiteUrl(e.target.value)}
+                className="w-full rounded-lg border border-aca-border px-3 py-2 outline-none focus:border-aca-burgundy"
+                placeholder="https://example.com"
+                required
+              />
+              <p className="mt-1 text-xs text-aca-muted">This is the link used for the "Visit Website" button on public forms.</p>
+            </div>
+            <button
+              type="submit"
+              disabled={websiteLoading}
+              className="rounded-lg bg-aca-burgundy px-4 py-2 text-sm font-bold text-white hover:bg-aca-red disabled:opacity-60"
+            >
+              {websiteLoading ? 'Saving...' : 'Save Settings'}
+            </button>
+          </form>
+        </section>
+
         <section className="rounded-xl border border-aca-border bg-white p-6 shadow-sm">
           <h2 className="mb-4 text-xl font-semibold text-aca-brown">Change Email</h2>
           {emailError && <p className="mb-4 rounded bg-aca-blush-soft p-3 text-sm text-aca-red">{emailError}</p>}

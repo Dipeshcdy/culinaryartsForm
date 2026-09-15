@@ -16,6 +16,11 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
+    match /settings/{document=**} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
     match /forms/{formId} {
       allow read: if isAdmin()
         || (resource.data.status == 'published');
